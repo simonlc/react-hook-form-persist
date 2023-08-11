@@ -1,8 +1,14 @@
-import {useEffect} from 'react'
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { useEffect } from 'react';
 import * as R from 'remeda';
-import {SetFieldValue, UseFormWatch, FieldValues, UnpackNestedValue} from 'react-hook-form'
+import {
+    type FieldValues,
+    type SetFieldValue,
+    type UnpackNestedValue,
+    type UseFormWatch,
+} from 'react-hook-form';
 
-export interface FormPersistConfig<TFieldValues extends FieldValues = any> {
+export type FormPersistConfig<TFieldValues extends FieldValues = any> = {
     storage?: Storage;
     watch: UseFormWatch<TFieldValues>;
     setValue: SetFieldValue<TFieldValues>;
@@ -13,9 +19,9 @@ export interface FormPersistConfig<TFieldValues extends FieldValues = any> {
     touch?: boolean;
     onTimeout?: () => void;
     timeout?: number;
-}
+};
 
-const useFormPersist = <TFieldValues extends FieldValues = any>(
+const useFormPersist = <TFieldValues extends FieldValues = FieldValues>(
     name: string,
     {
         storage,
@@ -26,35 +32,38 @@ const useFormPersist = <TFieldValues extends FieldValues = any>(
         validate = false,
         dirty = false,
         touch = false,
-        onTimeout,
-        timeout
-    }: FormPersistConfig<TFieldValues>
+        onTimeout = () => {},
+        timeout,
+    }: FormPersistConfig<TFieldValues>,
 ) => {
-    const watchedValues = watch()
+    const watchedValues = watch();
 
-    const getStorage = () => storage || window.sessionStorage
+    const getStorage = () => storage ?? window.sessionStorage;
 
-    const clearStorage = () => getStorage().removeItem(name)
+    const clearStorage = () => {
+        getStorage().removeItem(name);
+    };
 
     useEffect(() => {
-        const str = getStorage().getItem(name)
+        const str = getStorage().getItem(name);
 
         if (str) {
-            const {_timestamp = null, ...values} = JSON.parse(str)
-            const dataRestored: { [key: string]: any } = {}
-            const currTimestamp = Date.now()
+            const { _timestamp = null, ...values }: { _timestamp: number | null } & Partial<TFieldValues> = JSON.parse(str);
+            const dataRestored: Partial<TFieldValues> = {};
 
-            if (timeout && (currTimestamp - _timestamp) > timeout) {
-                onTimeout && onTimeout()
-                clearStorage()
-                return
+            if (timeout && _timestamp && (Date.now() - _timestamp) > timeout) {
+                onTimeout();
+                clearStorage();
+                return;
             }
 
             Object.entries(values)
                 .filter(([key, value]) => !exclude.includes(key) && !R.equals(value, watchedValues[key]))
                 .forEach(([key, value]) => {
+                    // @ts-expect-error Should be able to index it just fine
                     dataRestored[key] = value;
 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                     setValue(key, value, {
                         shouldValidate: validate,
                         shouldDirty: dirty,
@@ -63,31 +72,30 @@ const useFormPersist = <TFieldValues extends FieldValues = any>(
                 });
 
             if (onDataRestored) {
-                onDataRestored(dataRestored)
+                onDataRestored(dataRestored);
             }
         }
-    }, [
-        storage,
-        name,
-        onDataRestored,
-        setValue
-    ])
+    }, [storage, name, onDataRestored, setValue]);
 
     useEffect(() => {
-        const values = R.omit(watchedValues, exclude)
+        const values = R.omit(watchedValues, exclude);
 
         if (Object.entries(values).length) {
             if (timeout !== undefined) {
-                // @ts-ignore
-                values._timestamp = Date.now()
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
+                values._timestamp = Date.now();
             }
-            getStorage().setItem(name, JSON.stringify(values))
+
+            getStorage().setItem(name, JSON.stringify(values));
         }
-    }, [watchedValues, timeout])
+    }, [watchedValues, timeout]);
 
     return {
-        clear: () => getStorage().removeItem(name)
-    }
-}
+        clear() {
+            getStorage().removeItem(name);
+        },
+    };
+};
 
-export default useFormPersist
+export default useFormPersist;
