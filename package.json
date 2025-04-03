@@ -1,5 +1,6 @@
 {
-  "name": "react-hook-form-persistant",
+  "name": "@simonlc/react-hook-form-persist",
+  "private": false,
   "version": "1.1.0",
   "description": "Persist and populate react-hook-form form using storage of your choice",
   "types": "dist/index.d.ts",
@@ -25,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kyzegs/react-hook-form-persistant.git"
+    "url": "git+https://github.com/simonlc/react-hook-form-persist.git"
   },
   "keywords": [
     "react-hook-form",
@@ -45,9 +46,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kyzegs/react-hook-form-persistant/issues"
+    "url": "https://github.com/simonlc/react-hook-form-persist/issues"
   },
-  "homepage": "https://github.com/kyzegs/react-hook-form-persistant#readme",
+  "homepage": "https://github.com/simonlc/react-hook-form-persist#readme",
   "devDependencies": {
     "@testing-library/dom": "^9.3.1",
     "@testing-library/jest-dom": "^5.17.0",
